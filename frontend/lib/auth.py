@@ -57,8 +57,8 @@ def login_screen() -> None:
             st.session_state["access_token"] = resp["access_token"]
             st.session_state["user"] = resp["user"]
             st.rerun()
-        except Exception:
-            st.error("Login failed. Please check your credentials.")
+        except Exception as e:
+            st.error(f"Login failed: {e}")
             st.stop()
 
     st.markdown("</div></div>", unsafe_allow_html=True)
