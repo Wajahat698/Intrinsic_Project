@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: twilio-sms-manager-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: ENFORCE_TWILIO_SIGNATURE
+        value: "true"
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "720"
