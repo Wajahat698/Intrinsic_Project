@@ -5,7 +5,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from lib.api_client import API_BASE_URL, api_post
+from lib.api_client import api_post
 
 
 def _logo_path() -> Path | None:
