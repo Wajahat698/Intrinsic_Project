@@ -38,7 +38,11 @@ def api_post(path: str, json_data: dict):
     ensure_backend_started(base_url)
     with httpx.Client(timeout=20) as client:
         r = client.post(f"{base_url}{path}", json=json_data, headers=_auth_headers())
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            body = (e.response.text or "").strip()
+            raise Exception(f"HTTP {e.response.status_code} for {e.request.url}: {body}") from None
         return r.json()
 
 def api_get(path: str, params: dict | None = None):
@@ -47,7 +51,11 @@ def api_get(path: str, params: dict | None = None):
     ensure_backend_started(base_url)
     with httpx.Client(timeout=20) as client:
         r = client.get(f"{base_url}{path}", headers=_auth_headers(), params=params)
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            body = (e.response.text or "").strip()
+            raise Exception(f"HTTP {e.response.status_code} for {e.request.url}: {body}") from None
         return r.json()
 
 def api_patch(path: str, json_data: dict):
@@ -56,7 +64,11 @@ def api_patch(path: str, json_data: dict):
     ensure_backend_started(base_url)
     with httpx.Client(timeout=20) as client:
         r = client.patch(f"{base_url}{path}", headers=_auth_headers(), json=json_data)
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            body = (e.response.text or "").strip()
+            raise Exception(f"HTTP {e.response.status_code} for {e.request.url}: {body}") from None
         return r.json()
 
 def api_put(path: str, json_data: dict):
@@ -65,5 +77,9 @@ def api_put(path: str, json_data: dict):
     ensure_backend_started(base_url)
     with httpx.Client(timeout=20) as client:
         r = client.put(f"{base_url}{path}", headers=_auth_headers(), json=json_data)
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            body = (e.response.text or "").strip()
+            raise Exception(f"HTTP {e.response.status_code} for {e.request.url}: {body}") from None
         return r.json()

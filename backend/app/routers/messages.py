@@ -7,6 +7,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from twilio.rest import Client
+from twilio.base.exceptions import TwilioRestException
 
 from app.config import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_MESSAGING_SERVICE_SID
 from app.database import get_db
@@ -121,7 +122,10 @@ def forward_message(
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid destination number")
 
     if not TWILIO_ACCOUNT_SID or not TWILIO_AUTH_TOKEN:
-        raise HTTPException(status_code=500, detail="Twilio sending is not configured")
+        raise HTTPException(
+            status_code=500,
+            detail="Twilio sending is not configured (missing TWILIO_ACCOUNT_SID and/or TWILIO_AUTH_TOKEN)",
+        )
 
     from_number = normalize_phone_number(m.to_number)
     body = (m.message_body or "").strip() or "(empty message)"
@@ -131,11 +135,25 @@ def forward_message(
     else:
         body = f"FWD: {body}"
 
-    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-    if TWILIO_MESSAGING_SERVICE_SID:
-        sent = client.messages.create(to=to_number, body=body, messaging_service_sid=TWILIO_MESSAGING_SERVICE_SID)
-    else:
-        sent = client.messages.create(to=to_number, body=body, from_=from_number)
+    try:
+        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        if TWILIO_MESSAGING_SERVICE_SID:
+            sent = client.messages.create(
+                to=to_number,
+                body=body,
+                messaging_service_sid=TWILIO_MESSAGING_SERVICE_SID,
+            )
+        else:
+            if not from_number:
+                raise HTTPException(status_code=500, detail="Cannot determine from_number for forwarding")
+            sent = client.messages.create(to=to_number, body=body, from_=from_number)
+    except HTTPException:
+        raise
+    except TwilioRestException as e:
+        msg = (getattr(e, "msg", None) or str(e)).strip()
+        raise HTTPException(status_code=502, detail=f"Twilio send failed: {msg}")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Twilio send failed: {type(e).__name__}: {e}")
 
     db.add(
         AuditLog(
