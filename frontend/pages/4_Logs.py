@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import pandas as pd
 import streamlit as st
 
@@ -21,6 +23,10 @@ try:
     else:
         df = pd.DataFrame(logs)
         df["timestamp"] = pd.to_datetime(df["timestamp"])
+        if "action" in df.columns:
+            df["action"] = df["action"].astype(str).apply(
+                lambda s: re.sub(r"\btwilio\b\s*", "", s, flags=re.IGNORECASE).strip()
+            )
         st.dataframe(df, use_container_width=True, hide_index=True)
 except Exception as e:
     st.error(f"Failed to load audit logs: {e}")
