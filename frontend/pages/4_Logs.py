@@ -24,9 +24,22 @@ try:
         df = pd.DataFrame(logs)
         df["timestamp"] = pd.to_datetime(df["timestamp"])
         if "action" in df.columns:
-            df["action"] = df["action"].astype(str).apply(
-                lambda s: re.sub(r"\btwilio\b\s*", "", s, flags=re.IGNORECASE).strip()
-            )
+            action_map = {
+                "twilio_inbound_sms": "Inbound SMS",
+                "forward_message": "Forwarded SMS",
+                "login": "Login",
+                "update_number": "Update Number",
+                "create_user": "Create User",
+                "update_user": "Update User",
+            }
+            def _friendly_action(s: str) -> str:
+                v = str(s or "").strip()
+                key = v.lower()
+                if key in action_map:
+                    return action_map[key]
+                return re.sub(r"\btwilio\b\s*", "", v, flags=re.IGNORECASE).strip() or v
+
+            df["action"] = df["action"].astype(str).apply(_friendly_action)
         st.dataframe(df, use_container_width=True, hide_index=True)
 except Exception as e:
     st.error(f"Failed to load audit logs: {e}")
