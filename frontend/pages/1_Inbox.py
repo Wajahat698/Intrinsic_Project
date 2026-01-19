@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import pandas as pd
 import streamlit as st
 
@@ -20,6 +22,15 @@ st.title("📩 Message Inbox")
 
 st.session_state.setdefault("selected_number", None)
 st.session_state.setdefault("selected_msg_id", None)
+
+
+def _display_phone_only(v: str | None) -> str:
+    if not v:
+        return "-"
+    m = re.findall(r"\+?\d+", str(v))
+    if not m:
+        return str(v)
+    return "".join(m)
 
 with st.sidebar:
     st.divider()
@@ -74,7 +85,7 @@ if selected_number:
         selected_msg_id = st.radio(
             "Select a message to view",
             msg_ids,
-            format_func=lambda mid: f"From: {next((m.get('from_number') for m in msgs if m['id'] == mid), '-')} @ {pd.to_datetime(next(m.get('received_at') for m in msgs if m['id'] == mid)).strftime('%Y-%m-%d %H:%M')}",
+            format_func=lambda mid: f"From: {_display_phone_only(next((m.get('from_number') for m in msgs if m['id'] == mid), '-'))} @ {pd.to_datetime(next(m.get('received_at') for m in msgs if m['id'] == mid)).strftime('%Y-%m-%d %H:%M')}",
             label_visibility="collapsed",
             key="selected_msg_id",
         )
