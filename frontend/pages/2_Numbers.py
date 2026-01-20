@@ -12,7 +12,7 @@ require_login()
 sidebar()
 
 st.title("📱 Manage Phone Numbers")
-st.caption("Here you can add new Twilio numbers and assign them to users.")
+st.caption("Here you can add new  numbers and assign them to users.")
 
 try:
     numbers = api_get("/numbers")
@@ -24,7 +24,7 @@ except Exception as e:
 
 with st.expander("➕ Add a New Phone Number", expanded=False):
     with st.form("new_number_form"):
-        twilio_number = st.text_input("Twilio Number (E.164 format, e.g., +15551234567)")
+        _number = st.text_input(" Number (E.164 format, e.g., +15551234567)")
         label = st.text_input("Label (e.g., 'Walmart US Store 01')")
         user_options = {u['id']: u['username'] for u in users}
         user_options[0] = "(Unassigned)"
@@ -34,14 +34,14 @@ with st.expander("➕ Add a New Phone Number", expanded=False):
         if submitted:
             try:
                 api_post(
-                    f"/numbers?twilio_number={twilio_number}",
+                    f"/numbers?_number={_number}",
                     json_data={
                         "label": label or None,
                         "assigned_user_id": int(assigned_user_id) if assigned_user_id else None,
                         "status": "active",
                     },
                 )
-                st.success(f"Successfully added {twilio_number}!")
+                st.success(f"Successfully added {_number}!")
                 st.rerun()
             except Exception as e:
                 st.error(f"Failed to add number: {e}")
@@ -55,10 +55,10 @@ if not numbers:
 else:
     df = pd.DataFrame(numbers)
     df["assigned_user"] = df["assigned_user_id"].apply(lambda x: next((u['username'] for u in users if u['id'] == x), "-") if x else "-")
-    st.dataframe(df[["twilio_number", "label", "status", "assigned_user"]], use_container_width=True, hide_index=True)
+    st.dataframe(df[["_number", "label", "status", "assigned_user"]], use_container_width=True, hide_index=True)
 
     st.subheader("Edit a Number")
-    number_to_edit = st.selectbox("Select a number to edit", options=[n['id'] for n in numbers], format_func=lambda x: next((n['twilio_number'] for n in numbers if n['id'] == x), "-"))
+    number_to_edit = st.selectbox("Select a number to edit", options=[n['id'] for n in numbers], format_func=lambda x: next((n['_number'] for n in numbers if n['id'] == x), "-"))
     if number_to_edit:
         selected_num = next((n for n in numbers if n['id'] == number_to_edit), None)
         if selected_num:
