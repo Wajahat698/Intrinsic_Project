@@ -25,7 +25,7 @@ try:
         df["timestamp"] = pd.to_datetime(df["timestamp"])
         if "action" in df.columns:
             action_map = {
-                "twilio_inbound_sms": "Inbound SMS",
+                "_inbound_sms": "Inbound SMS",
                 "forward_message": "Forwarded SMS",
                 "login": "Login",
                 "update_number": "Update Number",
@@ -37,7 +37,7 @@ try:
                 key = v.lower()
                 if key in action_map:
                     return action_map[key]
-                return re.sub(r"\btwilio\b\s*", "", v, flags=re.IGNORECASE).strip() or v
+                return re.sub(r"\b\b\s*", "", v, flags=re.IGNORECASE).strip() or v
 
             df["action"] = df["action"].astype(str).apply(_friendly_action)
         st.dataframe(df, use_container_width=True, hide_index=True)
