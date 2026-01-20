@@ -59,8 +59,8 @@ if not numbers:
 
 selected_number = st.selectbox(
     "Select a phone number to view its inbox:",
-    options=[n["twilio_number"] for n in numbers],
-    format_func=lambda s: f"{s} ({next((n.get('label') for n in numbers if n['twilio_number'] == s), 'No label')})",
+    options=[n["number"] for n in numbers],
+    format_func=lambda s: f"{s} ({next((n.get('label') for n in numbers if n['number'] == s), 'No label')})",
     key="selected_number",
 )
 
